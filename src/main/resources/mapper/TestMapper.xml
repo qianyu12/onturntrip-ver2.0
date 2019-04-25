@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springtest.dao.TestMapper" >
+  <resultMap id="OneWayResultMap" type="com.example.springtest.domain.Oneway" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="start_station" property="startStation" jdbcType="VARCHAR" />
+    <result column="end_station" property="endStation" jdbcType="VARCHAR" />
+    <result column="train_no" property="trainNo" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="start_time" property="startTime" jdbcType="TIMESTAMP" />
+    <result column="end_time" property="endTime" jdbcType="TIMESTAMP" />
+    <result column="ticket" property="ticket" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="DoubleWayMap" type="com.example.springtest.domain.DoubleWay">
+    <collection property="firstTrip" columnPrefix="first_trip_" resultMap="BaseResultMap">
+    </collection>
+    <collection property="secondTrip" columnPrefix="second_trip_" resultMap="BaseResultMap">
+    </collection>
+  </resultMap>
+
+  <select id="getDirectOneWayByStationName" resultMap="OneWayResultMap">
+      select start_station,end_station,train_no,price,start_time,end_time,ticket
+      from oneway
+      where start_station = #{startStation} and end_station = #{endStation};
+     </select>
+  <select id="getDoubleWayByStationName" resultMap="DoubleWayMap">
+        select ft.id as first_trip_id,ft.start_station as first_trip_start_station,ft.end_station as first_trip_end_station,ft.train_no as first_trip_train_no,ft.price as first_trip_price, ft.start_time as first_trip_start_time,ft.end_time as first_trip_end_time, ft.ticket as first_trip_ticket,
+        st.id as second_trip_id,st.start_station as second_trip_start_station, st.end_station as second_trip_end_station,st.train_no as second_trip_.train_no, st.price as second_trip_price,st.start_time as second_trip_start_time,st.end_tiem as second_trip_end_time,st.ticket as second_trip_ticket
+        from oneway as ft , oneway as st
+        where ft.start_station = #{startStation} and ft.end_station = #{transferStation} and st.start_station = #{transferStation} and st.end_station = #{endStation}
+        and DATEDIFF(MINUTE,st.start_time,ft.end_time)>=30;
+    </select>
+</mapper>
