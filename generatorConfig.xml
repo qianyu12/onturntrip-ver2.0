@@ -13,9 +13,9 @@
         </plugin>
 
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
-                        connectionURL="jdbc:mysql://localhost:3306/leecx"
+                        connectionURL="jdbc:mysql://120.78.94.181:3306/schedule_recommend"
                         userId="root"
-                        password="goodfx98122">
+                        password="123456">
         </jdbcConnection>
 
         <!-- 对于生成的pojo所在包 -->
@@ -29,10 +29,16 @@
                              type="XMLMAPPER"/>
 
 
-        <table tableName="city"></table>
+        <table tableName="journery"></table>
+        <table tableName="user"></table>
+        <table tableName="route"></table>
         <table tableName="province"></table>
+        <table tableName="city"></table>
         <table tableName="station"></table>
         <table tableName="oneway"></table>
+        <table tableName="domestic_flight"></table>
+        <table tableName="fight_city_code"></table>
+        <table tableName="train"></table>
 
     </context>
 </generatorConfiguration>

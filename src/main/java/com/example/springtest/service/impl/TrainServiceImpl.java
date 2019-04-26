@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -26,13 +25,10 @@ public class TrainServiceImpl implements TrainService {
     private ProvinceMapper provinceMapper;
     @Autowired
     private StationMapper stationMapper;
-    @Autowired
-    private TestMapper testMapper;
+
     @Override
     public List<Oneway> getDirectOneWayByStationName(String startStation, String endStation) {
-//        return onewayMapper.getDirectOneWayByStationName(startStation.substring(0,startStation.length()-1),endStation.substring(0,endStation.length()-1));
-        List<Oneway> onewayList =  testMapper.getDirectOneWayByStationName(startStation,endStation);
-        return onewayList;
+        return onewayMapper.getDirectOneWayByStationNames(startStation,endStation);
     }
 
     @Override
@@ -41,28 +37,12 @@ public class TrainServiceImpl implements TrainService {
         if(isStation(start)&&isStation(end)){
             return getDirectOneWayByStationName(start.substring(0,start.length()-1),end.substring(0,end.length()-1));
         }else if (!isStation(start)&&isStation(end)){
-            //通过城市名字查询所有车站名字
-            List<Station> startStations = stationMapper.getStationsByCity(start);
-            //遍历所有的开始车站，到终点站
-            for(Station s:startStations){
-                onewayList.addAll(getDirectOneWayByStationName(s.getStationName(),end.substring(0,end.length()-1)));
-            }
+           return onewayMapper.getDirecOneWay(start,end.substring(0,end.length()-1));
         }else if(isStation(start) && !isStation(end)){
-            //通过城市名字查询所有车站名字
-            List<Station> endStations = stationMapper.getStationsByCity(end);
-            //遍历所有的到达车站，从开始站
-            for(Station s:endStations){
-                onewayList.addAll(getDirectOneWayByStationName(start.substring(0,start.length()-1),s.getStationName()));
-            }
+           return onewayMapper.getDirecOneWay(start.substring(0,start.length()-1),end);
         }else if (!isStation(start)&&!isStation(end)){
             //两个都不是车站名，嵌套查询
-            List<Station> startStations = stationMapper.getStationsByCity(start);
-            List<Station> endStations = stationMapper.getStationsByCity(end);
-            for(Station s1:startStations){
-                for(Station s2:endStations){
-                    onewayList.addAll(getDirectOneWayByStationName(s1.getStationName(),s2.getStationName()));
-                }
-            }
+           return onewayMapper.getDirecOneWay(start,end);
         }
         return onewayList;
     }
@@ -96,43 +76,46 @@ public class TrainServiceImpl implements TrainService {
         allTransferStations.addAll(transferStations.get(startOrientation.trim()));
         allTransferStations.addAll(transferStations.get(endOrientation.trim()));
         System.out.println(allTransferStations.toString());
+//        for(String transferCity:allTransferStations){
+//            List<Station> stations = stationMapper.selectStationByCity(transferCity);
+//            for(Station s:stations){
+//                List<DoubleWay> doubleWayList = onewayMapper.getDoubleWayByStationName(startStation,s.getTsZh(),endStation);
+//                List<DoubleWay> temp = new LinkedList<>();
+//                for(DoubleWay d:doubleWayList){
+//                    if(getTransferMinute(d.getFirstTrip(),d.getSecondTrip())<=90&&getTransferMinute(d.getFirstTrip(),d.getSecondTrip())>=30){
+//                        temp.add(d);
+//                    }
+//                }
+//                doubleWayList = temp;
+//                results.addAll(doubleWayList);
+//            }
+//        }
         for(String transferCity:allTransferStations){
-            List<Station> stations = stationMapper.getStationsByCity(transferCity);
-            for(Station s:stations){
-                results.addAll(onewayMapper.getDoubleWayByStationName(startStation,s.getStationName(),endStation));
-            }
+            List<DoubleWay> doubleWayList = onewayMapper.getDoubleWay(startStation,transferCity,endStation);
+            List<DoubleWay> temp = new LinkedList<>();
+                for(DoubleWay d:doubleWayList){
+                    if(getTransferMinute(d.getFirstTrip(),d.getSecondTrip())<=90&&getTransferMinute(d.getFirstTrip(),d.getSecondTrip())>=30){
+                        temp.add(d);
+                    }
+                }
+                doubleWayList = temp;
+                results.addAll(doubleWayList);
         }
         return results;
     }
 
+    //同站换乘
     @Override
     public List<DoubleWay> getTransferWay(String start, String end) throws IOException {
         List<DoubleWay> doubleWays = new LinkedList<>();
         if(isStation(start)&&isStation(end)){
             return getTransferWayByStation(start.substring(0,start.length()-1),end.substring(0,end.length()-1));
         }else if (!isStation(start)&&isStation(end)){
-            //通过城市名字查询所有车站名字
-            List<Station> startStations = stationMapper.getStationsByCity(start);
-            //遍历所有的开始车站，到终点站
-            for(Station s:startStations){
-                doubleWays.addAll(getTransferWayByStation(s.getStationName(),end.substring(0,end.length()-1)));
-            }
+                doubleWays.addAll(getTransferWayByStation(start,end.substring(0,end.length()-1)));
         }else if(isStation(start) && !isStation(end)){
-            //通过城市名字查询所有车站名字
-            List<Station> endStations = stationMapper.getStationsByCity(end);
-            //遍历所有的到达车站，从开始站
-            for(Station s:endStations){
-                doubleWays.addAll(getTransferWayByStation(start.substring(0,start.length()-1),s.getStationName()));
-            }
+                doubleWays.addAll(getTransferWayByStation(start.substring(0,start.length()-1),end));
         }else if (!isStation(start)&&!isStation(end)){
-            //两个都不是车站名，嵌套查询
-            List<Station> startStations = stationMapper.getStationsByCity(start);
-            List<Station> endStations = stationMapper.getStationsByCity(end);
-            for(Station s1:startStations){
-                for(Station s2:endStations){
-                    doubleWays.addAll(getTransferWayByStation(s1.getStationName(),s2.getStationName()));
-                }
-            }
+                doubleWays.addAll(getTransferWayByStation(start,end));
         }
         return doubleWays;
     }
@@ -142,29 +125,31 @@ public class TrainServiceImpl implements TrainService {
     public List<ResultWay> getWaysByWeight(String start, String end, Weight weight) {
         List<ResultWay> resultList = new LinkedList<>();
         List<Oneway> onewayList = getDirectOneWay(start,end);
+        boolean isBusiness =false;
         try{
             List<DoubleWay> doubleWayList = getTransferWay(start,end);
             //归一化用for oneway
-            BigDecimal maxPriceForOneWay = BigDecimal.valueOf(Double.MIN_VALUE);
-            BigDecimal minPriceForOneWay = BigDecimal.valueOf(Double.MAX_VALUE);
-            long maxTimeForOneWay = Long.MIN_VALUE ;
+            double maxPriceForOneWay = Double.MIN_VALUE;
+            double minPriceForOneWay = Double.MAX_VALUE;
+            long maxTimeForOneWay = Long.MIN_VALUE;
             long minTimeForOneWay = Long.MAX_VALUE;
            for(Oneway o:onewayList){
                resultList.add(new ResultWay(o));
                //价格最大最小值;
-               if(o.getPrice().compareTo(maxPriceForOneWay)==1){
-                   maxPriceForOneWay = o.getPrice();
-               }else if(o.getPrice().compareTo(minPriceForOneWay)==-1){
-                   minPriceForOneWay= o.getPrice();
+               if(o.getPrice(isBusiness)>maxPriceForOneWay){
+                   maxPriceForOneWay = o.getPrice(isBusiness);
+               }else if(o.getPrice(isBusiness)<minPriceForOneWay){
+                   minPriceForOneWay= o.getPrice(isBusiness);
                }
                //时间最大最小值：用min表示
-               Long minutes = calculateMinutes(o.getEndTime(),o.getStartTime());
+               String[] hourAndMinute = o.getDuration().split(":");
+               Long minutes = Long.valueOf(hourAndMinute[0])*60+Long.valueOf(hourAndMinute[1]);
                maxTimeForOneWay = minutes>maxTimeForOneWay?minutes:maxTimeForOneWay;
                minTimeForOneWay = minutes<minTimeForOneWay?minutes:minTimeForOneWay;
            }
            //归一化用for DoubleWay
-            BigDecimal maxPriceForDoubleWay = BigDecimal.valueOf(Double.MIN_VALUE);
-            BigDecimal minPriceForDoubleWay = BigDecimal.valueOf(Double.MAX_VALUE);
+            double maxPriceForDoubleWay = Double.MIN_VALUE;
+            double minPriceForDoubleWay = Double.MAX_VALUE;
             long maxTimeForDoubleWay = Long.MIN_VALUE;
             long minTimeForDoubleWay = Long.MAX_VALUE;
             long minTransferTime = Long.MAX_VALUE;
@@ -172,20 +157,20 @@ public class TrainServiceImpl implements TrainService {
            for(DoubleWay d:doubleWayList){
                resultList.add(new ResultWay(d));
                //totalPrice
-               BigDecimal totalPirce = d.getFirstTrip().getPrice().add(d.getSecondTrip().getPrice());
-               maxPriceForDoubleWay = totalPirce.compareTo(maxPriceForDoubleWay)==1?totalPirce:maxPriceForDoubleWay;
-               minPriceForDoubleWay = totalPirce.compareTo(minPriceForDoubleWay)==-1?totalPirce:minPriceForDoubleWay;
+               double totalPirce = d.getFirstTrip().getPrice(isBusiness)+d.getSecondTrip().getPrice(isBusiness);
+               maxPriceForDoubleWay = totalPirce>maxPriceForDoubleWay?totalPirce:maxPriceForDoubleWay;
+               minPriceForDoubleWay = totalPirce<minPriceForDoubleWay?totalPirce:minPriceForDoubleWay;
                //total时间：
-               Long totalMinutes = calculateMinutes(d.getFirstTrip().getEndTime(),d.getFirstTrip().getStartTime())+calculateMinutes(d.getSecondTrip().getEndTime(),d.getSecondTrip().getStartTime());
+               Long totalMinutes = calculateMinutes(d.getFirstTrip())+calculateMinutes(d.getSecondTrip());
                maxTimeForDoubleWay = totalMinutes>maxTimeForDoubleWay?totalMinutes:maxTimeForDoubleWay;
                minTimeForDoubleWay = totalMinutes<minTimeForDoubleWay?totalMinutes:minTimeForDoubleWay;
                //中转时间：
-               Long transfertime = calculateMinutes(d.getSecondTrip().getStartTime(),d.getFirstTrip().getEndTime());
+               Long transfertime = getTransferMinute(d.getFirstTrip(),d.getSecondTrip());
                maxTransferTime = transfertime>maxTransferTime?transfertime:maxTransferTime;
                minTransferTime = transfertime<minTransferTime?transfertime:minTransferTime;
            }
-           BigDecimal maxPrice = maxPriceForDoubleWay.compareTo(maxPriceForOneWay)==1?maxPriceForDoubleWay:maxPriceForOneWay;
-           BigDecimal minPrice = minPriceForDoubleWay.compareTo(minPriceForOneWay)==-1?minPriceForDoubleWay:minPriceForOneWay;
+           double maxPrice = maxPriceForDoubleWay>maxPriceForOneWay?maxPriceForDoubleWay:maxPriceForOneWay;
+           double minPrice = minPriceForDoubleWay<minPriceForOneWay?minPriceForDoubleWay:minPriceForOneWay;
            long maxTime = maxTimeForDoubleWay>maxTimeForOneWay?maxTimeForDoubleWay:maxTimeForOneWay;
            long minTime = minTimeForDoubleWay<minTimeForOneWay?minTimeForDoubleWay:minTimeForOneWay;
            minTransferTime = 0;
@@ -193,21 +178,21 @@ public class TrainServiceImpl implements TrainService {
           for(ResultWay resultWay:resultList){
               Object o =  resultWay.getWay();
               if(o instanceof Oneway){
-                  double priceScore = MathUtil.Normalization(((Oneway) o).getPrice().doubleValue(),minPrice.doubleValue(),maxPrice.doubleValue())*weight.getPriceScale();
-                  double timeScore = MathUtil.Normalization(calculateMinutes(((Oneway) o).getEndTime(),((Oneway) o).getStartTime()),minTime,maxTime)*weight.getTimeScale();
+                  double priceScore = MathUtil.Normalization(((Oneway) o).getPrice(isBusiness),minPrice,maxPrice)*weight.getPriceScale();
+                  double timeScore = MathUtil.Normalization(calculateMinutes((Oneway)o),minTime,maxTime)*weight.getTimeScale();
                   char  trainNoChar = ((Oneway) o).getTrainNo().toUpperCase().charAt(0);
                   double comforScore = (trainNoChar=='G'?0:trainNoChar=='D'?0.25:trainNoChar=='Z'?0.625:trainNoChar=='K'?0.875:1)*weight.getComftScale();
                   resultWay.setResultScore(priceScore+timeScore+comforScore);
               }else if (o instanceof DoubleWay){
                   Oneway firstTrip = ((DoubleWay) o).getFirstTrip();
                   Oneway secondTrap = ((DoubleWay) o).getSecondTrip();
-                  double priceScore = MathUtil.Normalization(firstTrip.getPrice().add(secondTrap.getPrice()).doubleValue(),minPrice.doubleValue(),maxPrice.doubleValue())*weight.getPriceScale();
-                  double timeScore = MathUtil.Normalization(calculateMinutes(firstTrip.getEndTime(),firstTrip.getEndTime())+calculateMinutes(secondTrap.getEndTime(),secondTrap.getStartTime()),minTime,maxTime)*weight.getTimeScale();
+                  double priceScore = MathUtil.Normalization(firstTrip.getPrice(isBusiness)+secondTrap.getPrice(isBusiness),minPrice,maxPrice)*weight.getPriceScale();
+                  double timeScore = MathUtil.Normalization(calculateMinutes(firstTrip)+calculateMinutes(secondTrap),minTime,maxTime)*weight.getTimeScale();
                   char trainNoCharForFistTrip = firstTrip.getTrainNo().toUpperCase().charAt(0);
                   char trianNoCharForSecondTrip = secondTrap.getTrainNo().toUpperCase().charAt(0);
                   int trainWeight = juegeWeightByNo(trainNoCharForFistTrip)+juegeWeightByNo(trianNoCharForSecondTrip);
                   double comforScore = trainWeight/80.0*weight.getComftScale();
-                  double transferScore = MathUtil.Normalization(calculateMinutes(secondTrap.getStartTime(),firstTrip.getEndTime()),minTransferTime,maxTransferTime)*weight.getTranferTimeScale();
+                  double transferScore = MathUtil.Normalization(getTransferMinute(firstTrip,secondTrap),minTransferTime,maxTransferTime)*weight.getTranferTimeScale();
                   System.out.println(priceScore+"-"+timeScore+"-"+comforScore+"-"+transferScore);
                   resultWay.setResultScore(priceScore+timeScore+comforScore+transferScore);
               }else{
@@ -215,6 +200,12 @@ public class TrainServiceImpl implements TrainService {
               }
           }
           //按照比例将进行排序,待完成
+            Collections.sort(resultList, new Comparator<ResultWay>() {
+                @Override
+                public int compare(ResultWay o1, ResultWay o2) {
+                    return o1.getResultScore()<o2.getResultScore()?-1:o1.getResultScore()>o2.getResultScore()?1:0;
+                }
+            });
         }catch (Exception e){
             System.out.println("something error when query transfering");
         }
@@ -223,7 +214,7 @@ public class TrainServiceImpl implements TrainService {
 
 
     public String getStationOrientation(String station){
-        return provinceMapper.getOrientationByStationName(station).getOriention();
+        return provinceMapper.getOrientationByStationName(station).getOreintation();
     }
 
     private boolean isStation(String name){
@@ -246,5 +237,20 @@ public class TrainServiceImpl implements TrainService {
 
     private Long calculateMinutes(Date d1,Date d2){
         return (d1.getTime()-d2.getTime())/(1000*60);
+    }
+
+    private Long calculateMinutes(Oneway o){
+        String[] result = o.getDuration().split(":");
+        return Long.valueOf(result[0])*60+Long.valueOf(result[1]);
+    }
+
+    private Long getTransferMinute(Oneway firstTrip,Oneway secondTrip){
+        String firstArriveTime = firstTrip.getArrTime();
+        String secondDepTime = secondTrip.getDepTime();
+        Long firstHour = Long.valueOf(firstArriveTime.split(":")[0]);
+        Long firstMinuete = Long.valueOf(firstArriveTime.split(":")[1]);
+        Long secondHour = Long.valueOf(secondDepTime.split(":")[0]);
+        Long secondMinuete = Long.valueOf(secondDepTime.split(":")[1]);
+        return secondHour*60+secondMinuete-(firstHour*60+secondMinuete);
     }
 }

@@ -4,20 +4,16 @@ import com.example.springtest.domain.DoubleWay;
 import com.example.springtest.domain.Oneway;
 import com.example.springtest.domain.ResultWay;
 import com.example.springtest.service.TrainService;
-import com.example.springtest.service.impl.TrainServiceImpl;
+import com.example.springtest.service.UserSerive;
 import com.example.springtest.utils.helpclass.Scope;
 import com.example.springtest.utils.helpclass.Weight;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.http.client.MockClientHttpResponse;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -34,6 +30,7 @@ public class SpringtestApplicationTests {
     private WebApplicationContext wac;
     @Autowired
     private TrainService trainService;
+
 
     @Before
     public void setupMockMvc(){
@@ -53,8 +50,8 @@ public class SpringtestApplicationTests {
     }
     @Test
     public void TestGetDirectOneWayByStationName(){
-        String startStation = "南京南站";
-        String endStation = "成都东站";
+        String startStation = "南京南";
+        String endStation = "西安北";
         List<Oneway> onewayList =trainService.getDirectOneWayByStationName(startStation,endStation);
         for(Oneway oneway:onewayList){
             System.out.println(oneway.toString());
@@ -114,8 +111,8 @@ public class SpringtestApplicationTests {
     public void testgetWaysByWeight(){
         Weight weight = new Weight();
         weight.setComfort(2);
-        weight.setPrice(3);
-        weight.setTime(4);
+        weight.setPrice(2);
+        weight.setTime(5);
         weight.setTransferTime(1);
         List<ResultWay> resultWays = trainService.getWaysByWeight("南京","成都",weight);
         for(ResultWay r:resultWays){
@@ -128,4 +125,5 @@ public class SpringtestApplicationTests {
             System.out.println(r.getResultScore());
         }
     }
+
 }
