@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springtest.dao.DomesticFlightMapper">
+    <resultMap id="BaseResultMap" type="com.example.springtest.domain.DomesticFlight">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <result column="airline_no" property="airlineNo" jdbcType="INTEGER"/>
+        <result column="airline_code" property="airlineCode" jdbcType="VARCHAR"/>
+        <result column="airline_name" property="airlineName" jdbcType="VARCHAR"/>
+        <result column="arr_airport_name" property="arrAirportName" jdbcType="VARCHAR"/>
+        <result column="arr_airport_tlc" property="arrAirportTlc" jdbcType="VARCHAR"/>
+        <result column="arr_city_name" property="arrCityName" jdbcType="VARCHAR"/>
+        <result column="arr_city_tlc" property="arrCityTlc" jdbcType="VARCHAR"/>
+        <result column="arr_terminal" property="arrTerminal" jdbcType="VARCHAR"/>
+        <result column="dep_airport_name" property="depAirportName" jdbcType="VARCHAR"/>
+        <result column="dep_airport_tlc" property="depAirportTlc" jdbcType="VARCHAR"/>
+        <result column="dep_city_name" property="depCityName" jdbcType="VARCHAR"/>
+        <result column="dep_city_tlc" property="depCityTlc" jdbcType="VARCHAR"/>
+        <result column="dep_terminal" property="depTerminal" jdbcType="VARCHAR"/>
+        <result column="arr_date" property="arrDate" jdbcType="TIMESTAMP"/>
+        <result column="dep_date" property="depDate" jdbcType="TIMESTAMP"/>
+        <result column="craft_type_name" property="craftTypeName" jdbcType="VARCHAR"/>
+        <result column="duration_days" property="durationDays" jdbcType="INTEGER"/>
+        <result column="flight_number" property="flightNumber" jdbcType="VARCHAR"/>
+        <result column="punctuality_rate" property="punctualityRate" jdbcType="VARCHAR"/>
+        <result column="lowest_enconomy_price" property="lowestEnconomyPrice" jdbcType="INTEGER"/>
+        <result column="lowest_first_price" property="lowestFirstPrice" jdbcType="INTEGER"/>
+        <result column="lowest_business_price" property="lowestBusinessPrice" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap id="DoubleFlightMap" type="com.example.springtest.domain.DoubleFight">
+        <association property="firstTrip" resultMap="BaseResultMap" columnPrefix="ft_"></association>
+        <association property="secondTrip" resultMap="BaseResultMap" columnPrefix="st_"></association>
+    </resultMap>
+    <select id="selectDomesticFlightByCityName" resultMap="BaseResultMap">
+      select *
+      FROM domestic_flight
+      WHERE dep_city_name = #{start} and arr_city_name = #{end};
+    </select>
+    <select id="selectDomesticFLightByAirportName" resultMap="BaseResultMap">
+      select *
+      FROM domestic_flight
+      WHERE dep_airport_name = #{start} and arr_airport_name = #{end};
+    </select>
+    <select id="selectDoubleFlightway" resultMap="DoubleFlightMap">
+        select d1.flight_number as ft_flight_number,d1.airline_name as ft_airline_name,d1.arr_airport_name as ft_arr_airport_name,d1.arr_city_name as ft_arr_city_name,d1.arr_terminal as ft_arr_terminal,d1.dep_airport_name as ft_dep_airport_name,d1.dep_city_name as ft_dep_city_name,d1.dep_terminal as ft_dep_terminal,d1.arr_date as ft_arr_date,d1.dep_date as ft_dep_date,d1.lowest_enconomy_price as ft_lowest_enconomy_price,d1.lowest_business_price as ft_lowest_business_price,
+        d2.flight_number as st_flight_number,d2.airline_name as st_airline_name,d2.arr_airport_name as st_arr_airport_name,d2.arr_city_name as st_arr_city_name,d2.arr_terminal as st_arr_terminal,d2.dep_airport_name as st_dep_airport_name,d2.dep_city_name as st_dep_city_name,d2.dep_terminal as st_dep_terminal,d2.arr_date as st_arr_date,d2.dep_date as st_dep_date,d2.lowest_enconomy_price as st_lowest_enconomy_price,d2.lowest_business_price as st_lowest_business_price
+        FROM domestic_flight as d1 INNER JOIN  domestic_flight as d2 on d1.arr_city_name=d2.dep_city_name
+        WHERE d1.dep_city_name = #{start} and d2.arr_city_name = #{end} and d1.arr_date&lt;DATE_SUB(d2.dep_date,INTERVAL 30 MINUTE) and d1.arr_date&gt;DATE_SUB(d2.dep_date,INTERVAL 100 MINUTE) and d1.lowest_enconomy_price is not null and d2.lowest_enconomy_price is not null
+        and d1.arr_city_name in
+        <foreach collection="middle" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

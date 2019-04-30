@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springtest.dao.TrainMapper" >
+  <resultMap id="BaseResultMap" type="com.example.springtest.domain.Train" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="train_no" property="trainNo" jdbcType="VARCHAR" />
+    <result column="train_code" property="trainCode" jdbcType="VARCHAR" />
+    <result column="from_station" property="fromStation" jdbcType="VARCHAR" />
+    <result column="to_station" property="toStation" jdbcType="VARCHAR" />
+  </resultMap>
+</mapper>

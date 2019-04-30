@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springtest.dao.ProvinceMapper" >
+  <resultMap id="BaseResultMap" type="com.example.springtest.domain.Province" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="prov_id" property="provId" jdbcType="INTEGER" />
+    <result column="prov_name" property="provName" jdbcType="VARCHAR" />
+    <result column="oreintation" property="oreintation" jdbcType="VARCHAR" />
+  </resultMap>
+  <select id="getOrientationByCityName" resultMap="BaseResultMap">
+    select p.oreintation
+    from province as p left join city as c on c.prov_id = p.prov_id
+    where c.city_name = #{cityName};
+  </select>
+  <select id="getOrientationByStationName" resultMap="BaseResultMap">
+    select p.oreintation
+    from province as p left join city as c on c.prov_id = p.prov_id left join station as s on s.city_id = c.city_id
+    where s.ts_zh = #{stationName};
+  </select>
+</mapper>

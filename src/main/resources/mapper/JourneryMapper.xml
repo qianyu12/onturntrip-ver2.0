@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springtest.dao.JourneryMapper">
+  <resultMap id="BaseResultMap" type="com.example.springtest.domain.Journery">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="journey_id" jdbcType="INTEGER" property="journeyId" />
+    <result column="start_city" jdbcType="VARCHAR" property="startCity" />
+    <result column="end_city" jdbcType="VARCHAR" property="endCity" />
+    <result column="way" jdbcType="VARCHAR" property="way" />
+    <result column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="time" jdbcType="TIMESTAMP" property="time" />
+    <result column="isCutOff" jdbcType="INTEGER" property="iscutoff" />
+  </resultMap>
+</mapper>

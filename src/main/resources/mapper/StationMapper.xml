@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springtest.dao.StationMapper" >
+  <resultMap id="BaseResultMap" type="com.example.springtest.domain.Station" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="ts_id" property="tsId" jdbcType="INTEGER" />
+    <result column="ts_zh" property="tsZh" jdbcType="VARCHAR" />
+    <result column="city_id" property="cityId" jdbcType="INTEGER" />
+    <result column="ts_tlc" property="tsTlc" jdbcType="CHAR" />
+  </resultMap>
+  <select id="selectStationByCity" resultMap="BaseResultMap">
+              d2.flight_number as st_flight_number,d2.airline_name as st_airline_name,d2.arr_airport_name as st_arr_airport_name,d2.arr_city_name as st_arr_city_name,d2.arr_terminal as st_arr_terminal,d2.dep_airport_name as st_dep_airport_name,d2.dep_city_name as st_dep_city_name,d2.dep_terminal as st_dep_terminal,d2.arr_date as fs_arr_date,d2.dep_date as _dep_date,d1.lowest_enconomy_price as ft_lowest_encomy_price,d1.lowest_business_price as ft_lowset_business_price.
+
+  </select>
+
+  <select id="selectStationByTsZh" resultMap="BaseResultMap">
+    select ts_zh,ts_tlc
+    from station
+    where ts_tlc=#{tsTlc};
+  </select>
+</mapper>

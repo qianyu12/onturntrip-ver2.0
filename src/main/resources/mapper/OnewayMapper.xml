@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springtest.dao.OnewayMapper" >
+  <resultMap id="BaseResultMap" type="com.example.springtest.domain.Oneway" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="id" property="id" jdbcType="INTEGER" />
+    <result column="train_telecode" property="trainTelecode" jdbcType="VARCHAR" />
+    <result column="train_no" property="trainNo" jdbcType="VARCHAR" />
+    <result column="start_ts_no" property="startTsNo" jdbcType="VARCHAR" />
+    <result column="end_ts_no" property="endTsNo" jdbcType="VARCHAR" />
+    <result column="from_ts_no" property="fromTsNo" jdbcType="VARCHAR" />
+    <result column="to_ts_no" property="toTsNo" jdbcType="VARCHAR" />
+    <result column="dep_time" property="depTime" jdbcType="VARCHAR" />
+    <result column="arr_time" property="arrTime" jdbcType="VARCHAR" />
+    <result column="duration" property="duration" jdbcType="VARCHAR" />
+    <result column="date" property="date" jdbcType="DATE" />
+    <result column="business_price" property="businessPrice" jdbcType="VARCHAR" />
+    <result column="first_price" property="firstPrice" jdbcType="VARCHAR" />
+    <result column="second_price" property="secondPrice" jdbcType="VARCHAR" />
+    <result column="high_soft_price" property="highSoftPrice" jdbcType="VARCHAR" />
+    <result column="soft_first_price" property="softFirstPrice" jdbcType="VARCHAR" />
+    <result column="moter_price" property="moterPrice" jdbcType="VARCHAR" />
+    <result column="hard_second_price" property="hardSecondPrice" jdbcType="VARCHAR" />
+    <result column="soft_price" property="softPrice" jdbcType="VARCHAR" />
+    <result column="hard_price" property="hardPrice" jdbcType="VARCHAR" />
+    <result column="no_seat_price" property="noSeatPrice" jdbcType="VARCHAR" />
+    <association property="fromStation" resultMap="StationResultMap" columnPrefix="from_station_"></association>
+    <association property="toStation" resultMap="StationResultMap" columnPrefix="to_station_"></association>
+  </resultMap>
+  <resultMap id="StationResultMap" type="com.example.springtest.domain.Station" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <result column="ts_id" property="tsId" jdbcType="INTEGER" />
+    <result column="ts_zh" property="tsZh" jdbcType="VARCHAR" />
+    <result column="city_id" property="cityId" jdbcType="INTEGER" />
+    <result column="ts_tlc" property="tsTlc" jdbcType="CHAR" />
+  </resultMap>
+
+  <resultMap id="DoubleWayMap" type="com.example.springtest.domain.DoubleWay">
+    <collection property="firstTrip" columnPrefix="first_trip_" resultMap="BaseResultMap">
+    </collection>
+    <collection property="secondTrip" columnPrefix="second_trip_" resultMap="BaseResultMap" >
+    </collection>
+  </resultMap>
+
+  <select id="getDirectOneWayByTlc" resultMap="BaseResultMap">
+      select a.*,s.ts_zh as from_station_ts_zh,s2.ts_zh as to_station_ts_zh
+      from oneway as a left join station as s on a.from_ts_no=s.ts_tlc left join station as s2 on a.to_ts_no = s2.ts_tlc
+      where from_ts_no = #{fromNo} and end_ts_no = #{endNo} and a.no_seat_price is not null
+      order by dep_time;
+   </select>
+  <select id="getDirectOneWayByStationNames" resultMap="BaseResultMap">
+      select a.*,s.ts_zh as from_station_ts_zh,s2.ts_zh as to_station_ts_zh
+      from oneway as a left join station as s on a.from_ts_no=s.ts_tlc left join station as s2 on a.to_ts_no = s2.ts_tlc
+      where s.ts_zh = #{fromStation} and s2.ts_zh = #{toStation} and a.no_seat_price is not null
+      order by dep_time;
+  </select>
+  <select id="getDirecOneWay" resultMap="BaseResultMap">
+    select a.*,s.ts_zh as from_station_ts_zh,s2.ts_zh as to_station_ts_zh
+      from oneway as a left join station as s on a.from_ts_no=s.ts_tlc left join station as s2 on a.to_ts_no = s2.ts_tlc
+      where s.ts_zh like CONCAT(#{from},"%") and s2.ts_zh like  CONCAT(#{to},"%") and a.no_seat_price is not null
+      order by dep_time;
+  </select>
+
+  <select id="getDoubleWayByStationName" resultMap="DoubleWayMap">
+    select w1.train_no as first_trip_train_no,w1.dep_time as first_trip_dep_time,w1.arr_time as first_trip_arr_time,w1.duration as first_trip_duration,w1.date as first_trip_date,w1.business_price as first_trip_business_price,w1.first_price as first_trip_first_price,w1.second_price as first_trip_second_price,w1.hard_price as first_trip_hard_price,w1.no_seat_price as first_trip_no_seat_price,s1.ts_zh as first_trip_from_station_ts_zh,s2.ts_zh as first_trip_to_station_ts_zh,
+    w2.train_no as second_trip_train_no,w2.dep_time as second_trip_dep_time,w2.arr_time as second_trip_arr_time,w2.duration as second_trip_duration,w2.date as second_trip_date,w2.business_price as second_trip_businuess_price,w2.first_price as second_trip_first_price,w2.second_price as second_trip_second_price,w2.hard_price as second_trip_hard_price,w2.no_seat_price as second_trip_no_seat_price,s3.ts_zh as second_trip_from_station_ts_zh,s4.ts_zh as second_trip_to_station_ts_zh
+    from (oneway as w1 left join station as s1 on w1.from_ts_no=s1.ts_tlc left join station as s2 on w1.to_ts_no=s2.ts_tlc)
+    ,(oneway as w2 left join station as s3 on w2.from_ts_no=s3.ts_tlc left join station as s4 on w2.to_ts_no=s4.ts_tlc)
+    where s1.ts_zh = #{startStation} and s2.ts_zh = #{transferStation} and s3.ts_zh =#{transferStation} and s4.ts_zh = #{endStation} and  w1.no_seat_price is not null
+    order by w1.dep_time;
+    </select>
+
+  <select id="getDoubleWay" resultMap="DoubleWayMap">
+     select w1.train_no as first_trip_train_no,w1.dep_time as first_trip_dep_time,w1.arr_time as first_trip_arr_time,w1.duration as first_trip_duration,w1.date as first_trip_date,w1.business_price as first_trip_business_price,w1.first_price as first_trip_first_price,w1.second_price as first_trip_second_price,w1.hard_price as first_trip_hard_price,w1.no_seat_price as first_trip_no_seat_price,s1.ts_zh as first_trip_from_station_ts_zh,s2.ts_zh as first_trip_to_station_ts_zh,
+    w2.train_no as second_trip_train_no,w2.dep_time as second_trip_dep_time,w2.arr_time as second_trip_arr_time,w2.duration as second_trip_duration,w2.date as second_trip_date,w2.business_price as second_trip_businuess_price,w2.first_price as second_trip_first_price,w2.second_price as second_trip_second_price,w2.hard_price as second_trip_hard_price,w2.no_seat_price as second_trip_no_seat_price,s3.ts_zh as second_trip_from_station_ts_zh,s4.ts_zh as second_trip_to_station_ts_zh
+    from (oneway as w1 inner join station as s1 on w1.from_ts_no=s1.ts_tlc inner join station as s2 on w1.to_ts_no=s2.ts_tlc inner join city as c on c.city_id =s2.city_id ),
+    (oneway as w2 inner join station as s3 on w2.from_ts_no=s3.ts_tlc inner join station as s4 on w2.to_ts_no=s4.ts_tlc inner join city as c2 on c2.city_id = s3.city_id)
+    where s1.ts_zh like CONCAT(#{start},"%") and s4.ts_zh like CONCAT(#{end},"%") and s2.city_id=s3.city_id and w1.no_seat_price is not null and c.city_name in
+    <foreach collection="middle" index="index" item="item" open="(" separator="," close=")">
+      #{item}
+    </foreach>
+    order by w1.dep_time;
+  </select>
+
+</mapper>
