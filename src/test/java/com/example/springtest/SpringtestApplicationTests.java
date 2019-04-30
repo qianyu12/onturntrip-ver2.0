@@ -1,8 +1,8 @@
 package com.example.springtest;
 
-import com.example.springtest.domain.DoubleWay;
-import com.example.springtest.domain.Oneway;
-import com.example.springtest.domain.ResultWay;
+import com.example.springtest.domain.*;
+import com.example.springtest.service.FlightService;
+import com.example.springtest.service.TrainAndFlightService;
 import com.example.springtest.service.TrainService;
 import com.example.springtest.service.UserSerive;
 import com.example.springtest.utils.helpclass.Scope;
@@ -30,8 +30,10 @@ public class SpringtestApplicationTests {
     private WebApplicationContext wac;
     @Autowired
     private TrainService trainService;
-
-
+    @Autowired
+    private FlightService flightService;
+    @Autowired
+    private TrainAndFlightService trainAndFlightServiced;
     @Before
     public void setupMockMvc(){
         mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
@@ -70,10 +72,10 @@ public class SpringtestApplicationTests {
 
     @Test
     public void TestGetTransferWay(){
-        String start ="南京南";
-        String end = "成都东";
+        String start ="南京南站";
+        String end = "成都";
         try {
-            List<DoubleWay> list = trainService.getTransferWayByStation(start,end);
+            List<DoubleWay> list = trainService.getTransferWay(start,end);
             for(DoubleWay d:list){
                 System.out.println(d.toString());
             }
@@ -110,20 +112,35 @@ public class SpringtestApplicationTests {
     @Test
     public void testgetWaysByWeight(){
         Weight weight = new Weight();
-        weight.setComfort(2);
-        weight.setPrice(2);
-        weight.setTime(5);
+        weight.setComfort(1);
+        weight.setPrice(5);
+        weight.setTime(3);
         weight.setTransferTime(1);
-        List<ResultWay> resultWays = trainService.getWaysByWeight("南京","成都",weight);
+        List<ResultWay> resultWays = trainAndFlightServiced.getWaysByWeight("南京","成都",weight);
         for(ResultWay r:resultWays){
-            Object o = r.getWay();
-            if(o instanceof Oneway){
-                System.out.println(((Oneway) o).getTrainNo());
-            }else if(o instanceof  DoubleWay){
-                System.out.println(o.toString());
-            }
-            System.out.println(r.getResultScore());
+            System.out.println(r.toString());
+        }
+    }
+    @Test
+    public void testgetDoubleFlight(){
+        List<DoubleFight> doubleFights = flightService.getDoubleFlight("北京","成都");
+        for(DoubleFight d:doubleFights){
+            System.out.println(d.getFirstTrip().getFlightNumber()+"->"+d.getSecondTrip().getFlightNumber()+":"+d.getSecondTrip().getDepDate()+d.getSecondTrip().getArrDate()+d.getFirstTrip().getArrDate()+d.getFirstTrip().getDepDate());
+        }
+    }
+    @Test
+    public void testgetFlightToTrain(){
+        List<FlightToTrain> list =trainAndFlightServiced.getFlightToTrain("北京","成都");
+        for(FlightToTrain ft:list){
+            System.out.println(ft.getFirstTrip().getArrCityName()+"->"+ft.getSecondTrip().getFromStation().getCityName()+ft.getSecondTrip().getToStation().getCityName());
         }
     }
 
+    @Test
+    public void testGetTrainToFlight(){
+        List<TrainToFlight> list =trainAndFlightServiced.getTrainToFlight("南京","成都");
+        for(TrainToFlight ft:list){
+            System.out.println(ft.getFirstTrip().getToStation().getCityName()+"->"+ft.getSecondTrip().getDepCityName());
+        }
+    }
 }

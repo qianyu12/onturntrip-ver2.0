@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.springtest.dao.TrainAndFlightMapper" >
+    <resultMap id="FlightMap" type="com.example.springtest.domain.DomesticFlight">
+        <result column="airline_no" property="airlineNo" jdbcType="INTEGER"/>
+        <result column="airline_code" property="airlineCode" jdbcType="VARCHAR"/>
+        <result column="airline_name" property="airlineName" jdbcType="VARCHAR"/>
+        <result column="arr_airport_name" property="arrAirportName" jdbcType="VARCHAR"/>
+        <result column="arr_airport_tlc" property="arrAirportTlc" jdbcType="VARCHAR"/>
+        <result column="arr_city_name" property="arrCityName" jdbcType="VARCHAR"/>
+        <result column="arr_city_tlc" property="arrCityTlc" jdbcType="VARCHAR"/>
+        <result column="arr_terminal" property="arrTerminal" jdbcType="VARCHAR"/>
+        <result column="dep_airport_name" property="depAirportName" jdbcType="VARCHAR"/>
+        <result column="dep_airport_tlc" property="depAirportTlc" jdbcType="VARCHAR"/>
+        <result column="dep_city_name" property="depCityName" jdbcType="VARCHAR"/>
+        <result column="dep_city_tlc" property="depCityTlc" jdbcType="VARCHAR"/>
+        <result column="dep_terminal" property="depTerminal" jdbcType="VARCHAR"/>
+        <result column="arr_date" property="arrDate" jdbcType="TIMESTAMP"/>
+        <result column="dep_date" property="depDate" jdbcType="TIMESTAMP"/>
+        <result column="craft_type_name" property="craftTypeName" jdbcType="VARCHAR"/>
+        <result column="duration_days" property="durationDays" jdbcType="INTEGER"/>
+        <result column="flight_number" property="flightNumber" jdbcType="VARCHAR"/>
+        <result column="punctuality_rate" property="punctualityRate" jdbcType="VARCHAR"/>
+        <result column="lowest_enconomy_price" property="lowestEnconomyPrice" jdbcType="INTEGER"/>
+        <result column="lowest_first_price" property="lowestFirstPrice" jdbcType="INTEGER"/>
+        <result column="lowest_business_price" property="lowestBusinessPrice" jdbcType="INTEGER"/>
+    </resultMap>
+    <resultMap id="TrainMap" type="com.example.springtest.domain.Oneway" >
+        <result column="id" property="id" jdbcType="INTEGER" />
+        <result column="train_telecode" property="trainTelecode" jdbcType="VARCHAR" />
+        <result column="train_no" property="trainNo" jdbcType="VARCHAR" />
+        <result column="start_ts_no" property="startTsNo" jdbcType="VARCHAR" />
+        <result column="end_ts_no" property="endTsNo" jdbcType="VARCHAR" />
+        <result column="from_ts_no" property="fromTsNo" jdbcType="VARCHAR" />
+        <result column="to_ts_no" property="toTsNo" jdbcType="VARCHAR" />
+        <result column="dep_time" property="depTime" jdbcType="VARCHAR" />
+        <result column="arr_time" property="arrTime" jdbcType="VARCHAR" />
+        <result column="duration" property="duration" jdbcType="VARCHAR" />
+        <result column="date" property="date" jdbcType="DATE" />
+        <result column="business_price" property="businessPrice" jdbcType="VARCHAR" />
+        <result column="first_price" property="firstPrice" jdbcType="VARCHAR" />
+        <result column="second_price" property="secondPrice" jdbcType="VARCHAR" />
+        <result column="high_soft_price" property="highSoftPrice" jdbcType="VARCHAR" />
+        <result column="soft_first_price" property="softFirstPrice" jdbcType="VARCHAR" />
+        <result column="moter_price" property="moterPrice" jdbcType="VARCHAR" />
+        <result column="hard_second_price" property="hardSecondPrice" jdbcType="VARCHAR" />
+        <result column="soft_price" property="softPrice" jdbcType="VARCHAR" />
+        <result column="hard_price" property="hardPrice" jdbcType="VARCHAR" />
+        <result column="no_seat_price" property="noSeatPrice" jdbcType="VARCHAR" />
+        <association property="fromStation" resultMap="StationResultMap" columnPrefix="from_station_">
+        </association>
+        <association property="toStation" resultMap="StationResultMap" columnPrefix="to_station_">
+        </association>
+    </resultMap>
+
+    <resultMap id="StationResultMap" type="com.example.springtest.domain.Station" >
+        <result column="ts_id" property="tsId" jdbcType="INTEGER" />
+        <result column="ts_zh" property="tsZh" jdbcType="VARCHAR" />
+        <result column="city_id" property="cityId" jdbcType="INTEGER" />
+        <result column="ts_tlc" property="tsTlc" jdbcType="CHAR" />
+        <result column="city_name" property="cityName"></result>
+    </resultMap>
+
+    <select id="slectDomesticFlightByManyCityName" resultMap="FlightMap">
+        select *
+        from domestic_flight
+        where lowest_enconomy_price is not null and dep_city_name in
+        <foreach collection="start" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and arr_city_name in
+        <foreach collection="end" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="selectTrainByManyCityName" resultMap="TrainMap">
+        select *,s1.ts_zh as from_station_ts_zh,s2.ts_zh as to_station_ts_zh,c1.city_name as from_station_city_name ,c2.city_name as to_station_city_name
+        from oneway as a left join station as s1 on a.from_ts_no=s1.ts_tlc left join station as s2 on a.to_ts_no = s2.ts_tlc left join city as c1 on c1.city_id= s1.city_id left join city as c2 on c2.city_id = s2.city_id
+        where a.no_seat_price is not null and c1.city_name in
+        <foreach collection="start" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach> and
+         c2.city_name in
+        <foreach collection="end" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+</mapper>
